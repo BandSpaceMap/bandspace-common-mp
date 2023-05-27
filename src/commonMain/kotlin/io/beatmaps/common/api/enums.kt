@@ -14,6 +14,7 @@ interface HumanEnum<E> where E : Enum<E>, E : HumanEnum<E> {
 }
 
 object ECharacteristicSerializer : KHumanEnumSerializer<ECharacteristic>(enumValues())
+object EInstrumentSerializer : KInstrumentEnumSerializer<EInstrument>(enumValues())
 object EDifficultySerializer : KHumanEnumSerializer<EDifficulty>(enumValues())
 open class KHumanEnumSerializer<E>(private val members: Array<E>) : KSerializer<E> where E : Enum<E>, E : HumanEnum<E> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("ECharacteristic", PrimitiveKind.STRING)
@@ -29,6 +30,21 @@ open class KHumanEnumSerializer<E>(private val members: Array<E>) : KSerializer<
     }
 }
 
+open class KInstrumentEnumSerializer<E>(private val members: Array<E>) : KSerializer<E> where E : Enum<E>, E : HumanEnum<E> {
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("EInstrument", PrimitiveKind.STRING)
+    override fun serialize(encoder: Encoder, value: E) = encoder.encodeString(value.enumName())
+    override fun deserialize(decoder: Decoder): E {
+        val search = decoder.decodeString()
+        for (each in members) {
+            if (each.name.removePrefix("_").compareTo(search.replace(" ", ""), ignoreCase = true) == 0) {
+                return each
+            }
+        }
+        throw IllegalArgumentException("No enum constant for search $search")
+    }
+}
+
+
 inline fun <reified T : Enum<T>> searchEnum(search: String): T {
     for (each in enumValues<T>()) {
         if (each.name.removePrefix("_").compareTo(search.replace(" ", ""), ignoreCase = true) == 0) {
@@ -41,6 +57,16 @@ inline fun <reified T : Enum<T>> searchEnum(search: String): T {
 @Serializable(with = ECharacteristicSerializer::class)
 enum class ECharacteristic(val color: String) : HumanEnum<ECharacteristic> {
     Standard("primary"), OneSaber("info"), NoArrows("info"), _90Degree("warning"), _360Degree("warning"), Lightshow("danger"), Lawless("danger");
+
+    override fun human() = toString().removePrefix("_")
+    override fun enumName() = human()
+
+    companion object
+}
+
+@Serializable(with = EInstrumentSerializer::class)
+enum class EInstrument(val color: String) : HumanEnum<EInstrument> {
+    Drum("primary"), Keyboard("info"), Bass("warning"), Guitar("danger");
 
     override fun human() = toString().removePrefix("_")
     override fun enumName() = human()

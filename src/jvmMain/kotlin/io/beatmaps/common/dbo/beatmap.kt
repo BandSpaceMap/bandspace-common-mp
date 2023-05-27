@@ -2,6 +2,7 @@ package io.beatmaps.common.dbo
 
 import io.beatmaps.common.api.ECharacteristic
 import io.beatmaps.common.api.EDifficulty
+import io.beatmaps.common.api.EInstrument
 import io.beatmaps.common.api.EMapState
 import io.beatmaps.common.db.array
 import io.beatmaps.common.db.postgresEnumeration
@@ -9,18 +10,8 @@ import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
-import org.jetbrains.exposed.sql.ColumnSet
-import org.jetbrains.exposed.sql.Index
-import org.jetbrains.exposed.sql.JoinType
-import org.jetbrains.exposed.sql.Op
-import org.jetbrains.exposed.sql.Query
-import org.jetbrains.exposed.sql.QueryAlias
-import org.jetbrains.exposed.sql.ResultRow
-import org.jetbrains.exposed.sql.SqlExpressionBuilder
-import org.jetbrains.exposed.sql.VarCharColumnType
+import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.javatime.timestamp
-import org.jetbrains.exposed.sql.select
-import org.jetbrains.exposed.sql.wrapAsExpression
 import java.math.BigDecimal
 import java.time.Instant
 
@@ -247,6 +238,7 @@ object Difficulty : IntIdTable("difficulty", "difficultyId") {
     val seconds = decimal("seconds", 10, 3)
     val mapId = reference("mapId", Beatmap)
     val characteristic = postgresEnumeration<ECharacteristic>("characteristic", "characteristic")
+    val instrument = postgresEnumeration<EInstrument>("instrument", "instrument")
     val difficulty = postgresEnumeration<EDifficulty>("difficulty", "diff")
     val events = integer("events")
     val chroma = bool("chroma")
@@ -286,6 +278,7 @@ data class DifficultyDao(val key: EntityID<Int>) : IntEntity(key) {
     val seconds: BigDecimal by Difficulty.seconds
     val map: BeatmapDao by BeatmapDao referencedOn Difficulty.mapId
     val characteristic: ECharacteristic by Difficulty.characteristic
+    val instrument: EInstrument by Difficulty.instrument
     val difficulty: EDifficulty by Difficulty.difficulty
     val events: Int by Difficulty.events
     val chroma: Boolean by Difficulty.chroma

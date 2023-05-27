@@ -63,7 +63,8 @@ data class MapInfo(
     val _allDirectionsEnvironmentName: String?,
     val _songTimeOffset: Float,
     val _customData: MapCustomData?,
-    val _difficultyBeatmapSets: List<DifficultyBeatmapSet>
+    val _difficultyBeatmapSets: List<DifficultyBeatmapSet>,
+    val _InstrumentMapDic: Map<String, List<DifficultyBeatmap>>
 ) {
     fun imageInfo(path: ZipPath?, info: ExtractedInfo) = path?.inputStream().use { stream ->
         try {
