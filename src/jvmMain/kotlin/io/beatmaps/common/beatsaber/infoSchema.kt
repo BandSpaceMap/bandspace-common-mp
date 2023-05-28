@@ -49,7 +49,7 @@ import kotlin.reflect.KProperty1
 data class MapInfo(
     val _version: String,
     val _songName: String,
-    val _songSubName: String,
+//    val _songSubName: String,
     val _songAuthorName: String,
     val _levelAuthorName: String,
     val _beatsPerMinute: Float,
@@ -57,13 +57,13 @@ data class MapInfo(
     val _shufflePeriod: Float,
     val _previewStartTime: Float,
     val _previewDuration: Float,
-    val _songFilename: String,
+    var _songFilename: String,
     val _coverImageFilename: String,
     val _environmentName: String,
     val _allDirectionsEnvironmentName: String?,
     val _songTimeOffset: Float,
     val _customData: MapCustomData?,
-    val _difficultyBeatmapSets: List<DifficultyBeatmapSet>,
+//    val _difficultyBeatmapSets: List<DifficultyBeatmapSet>,
     val _InstrumentMapDic: Map<String, List<DifficultyBeatmap>>
 ) {
     fun imageInfo(path: ZipPath?, info: ExtractedInfo) = path?.inputStream().use { stream ->
@@ -146,13 +146,15 @@ data class MapInfo(
         validate(MapInfo::_beatsPerMinute).isNotNull().isBetween(10f, 1000f)
         validate(MapInfo::_previewStartTime).isPositiveOrZero()
         validate(MapInfo::_previewDuration).isPositiveOrZero()
+//        validate(MapInfo::_songFilename).isNotNull().validate(InFiles) { it == null || files.contains(it.lowercase()) }
         validate(MapInfo::_songFilename).isNotNull().validate(InFiles) { it == null || files.contains(it.lowercase()) }
             .validate(AudioFormat) { it == null || audioValid(audio, info) }
         val imageInfo = imageInfo(getFile(_coverImageFilename), info)
         validate(MapInfo::_coverImageFilename).isNotNull().validate(InFiles) { it == null || files.contains(it.lowercase()) }
             .validate(ImageFormat) { imageInfo != null && arrayOf("jpeg", "jpg", "png").contains(imageInfo.format) }
             .validate(ImageSquare) { imageInfo == null || imageInfo.width == imageInfo.height }
-            .validate(ImageSize) { imageInfo == null || imageInfo.width >= 256 && imageInfo.height >= 256 }
+//            .validate(ImageSize) { imageInfo == null || imageInfo.width >= 256 && imageInfo.height >= 256 }
+            .validate(ImageSize) { imageInfo == null || imageInfo.width >= 60 && imageInfo.height >= 60 }
         validate(MapInfo::_customData).validate {
             extraFieldsViolation(
                 constraintViolations,
@@ -161,7 +163,10 @@ data class MapInfo(
         }
         validate(MapInfo::_allDirectionsEnvironmentName).isEqualTo("GlassDesertEnvironment")
         validate(MapInfo::_songTimeOffset).isZero()
-        validate(MapInfo::_difficultyBeatmapSets).isNotNull().isNotEmpty().validateForEach { it.validate(this, files, getFile, info) }
+//        validate(MapInfo::_difficultyBeatmapSets).isNotNull().isNotEmpty().validateForEach { it.validate(this, files, getFile, info) }
+        validate(MapInfo::_InstrumentMapDic).isNotNull().isNotEmpty().validate {
+            info.diffInstruments = it
+        }
     }
 }
 

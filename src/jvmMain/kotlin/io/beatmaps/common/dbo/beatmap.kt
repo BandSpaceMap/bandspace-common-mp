@@ -262,7 +262,7 @@ object Difficulty : IntIdTable("difficulty", "difficultyId") {
     val rankedAt = timestamp("rankedAt").nullable()
     val qualifiedAt = timestamp("qualifiedAt").nullable()
 
-    val uniqueDiff = Index(listOf(versionId, characteristic, difficulty), true, "diff_unique")
+    val uniqueDiff = Index(listOf(versionId, instrument, difficulty), true, "diff_unique")
 }
 
 data class DifficultyDao(val key: EntityID<Int>) : IntEntity(key) {

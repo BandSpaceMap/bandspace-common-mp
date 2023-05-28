@@ -52,6 +52,7 @@ data class ExtractedInfo(
     var mapInfo: MapInfo,
     val score: Short,
     val diffs: MutableMap<DifficultyBeatmapSet, MutableMap<DifficultyBeatmap, BSDiff>> = mutableMapOf(),
+    var diffInstruments: Map<String, List<DifficultyBeatmap>>? = null,
     var duration: Float = 0f,
     var thumbnail: ByteArrayOutputStream? = null,
     var preview: ByteArrayOutputStream? = null,
@@ -92,7 +93,7 @@ class ZipPath(private val fs: ZipFile, private val originalPath: String, val hea
 
 class ZipHelper(private val fs: ZipFile, val filesOriginalCase: Set<String>, val files: Set<String>, val directories: Set<String>) : AutoCloseable {
     val infoPath: ZipPath by lazy {
-        getPathDirect(filesOriginalCase.filter { it.endsWith("/info.dat", true) }.minByOrNull { it.length } ?: throw ZipHelperException("Missing Info.dat"))
+        getPathDirect(filesOriginalCase.filter { it.endsWith("/info.bytes", true) }.minByOrNull { it.length } ?: throw ZipHelperException("Missing Info.dat"))
     }
 
     val audioFile: File by lazy {
@@ -111,11 +112,13 @@ class ZipHelper(private val fs: ZipFile, val filesOriginalCase: Set<String>, val
     private fun audioInitialized() = ::audioFile.isLazyInitialized
 
     val info by lazy {
-        infoPath.inputStream().use {
+        infoPath.inputStream().use { it ->
             val byteArrayOutputStream = ByteArrayOutputStream()
             it.copyTo(byteArrayOutputStream, sizeLimit = 50 * 1024 * 1024)
 
-            jackson.readValue<MapInfo>(byteArrayOutputStream.toByteArray())
+            jackson.readValue<MapInfo>(byteArrayOutputStream.toByteArray()).also {
+                it._songFilename = "SongFile/" + it._songFilename
+            }
         }
     }
 
