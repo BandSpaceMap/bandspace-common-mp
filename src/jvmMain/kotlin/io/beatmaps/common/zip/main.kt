@@ -5,7 +5,6 @@ import io.beatmaps.common.beatsaber.BSDiff
 import io.beatmaps.common.beatsaber.BSDifficulty
 import io.beatmaps.common.beatsaber.BSDifficultyV3
 import io.beatmaps.common.beatsaber.DifficultyBeatmap
-import io.beatmaps.common.beatsaber.DifficultyBeatmapSet
 import io.beatmaps.common.beatsaber.MapInfo
 import io.beatmaps.common.beatsaber.SongLengthInfo
 import io.beatmaps.common.copyTo
@@ -51,7 +50,7 @@ data class ExtractedInfo(
     val md: DigestOutputStream,
     var mapInfo: MapInfo,
     val score: Short,
-    val diffs: MutableMap<DifficultyBeatmapSet, MutableMap<DifficultyBeatmap, BSDiff>> = mutableMapOf(),
+//    val diffs: MutableMap<DifficultyBeatmapSet, MutableMap<DifficultyBeatmap, BSDiff>> = mutableMapOf(),
     var diffInstruments: Map<String, List<DifficultyBeatmap>>? = null,
     var duration: Float = 0f,
     var thumbnail: ByteArrayOutputStream? = null,

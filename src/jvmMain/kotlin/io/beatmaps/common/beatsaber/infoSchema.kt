@@ -57,7 +57,14 @@ data class MapInfo(
     val _shufflePeriod: Float,
     val _previewStartTime: Float,
     val _previewDuration: Float,
+    val _songBlankTime: Float,
+    val _songLength: Float,
     var _songFilename: String,
+    var _guitarFilename: String,
+    var _bassFilename: String,
+    var _drumFilename: String,
+    var _keyboardFilename: String,
+    var _otherFilename: String,
     val _coverImageFilename: String,
     val _environmentName: String,
     val _allDirectionsEnvironmentName: String?,
@@ -224,25 +231,27 @@ data class Contributor(
     val _iconPath: String? = null
 )
 
-data class DifficultyBeatmapSet(
-    val _beatmapCharacteristicName: String,
-    val _difficultyBeatmaps: List<DifficultyBeatmap>
-) {
-    fun validate(validator: Validator<DifficultyBeatmapSet>, files: Set<String>, getFile: (String) -> ZipPath?, info: ExtractedInfo) = validator.apply {
-        validate(DifficultyBeatmapSet::_beatmapCharacteristicName).isNotNull().isIn("Standard", "NoArrows", "OneSaber", "360Degree", "90Degree", "Lightshow", "Lawless")
-        validate(DifficultyBeatmapSet::_difficultyBeatmaps).isNotNull().isNotEmpty().validateForEach {
-            it.validate(this, self(), files, getFile, info)
-        }
-    }
-
-    private fun self() = this
-
-    fun enumValue() = searchEnum<ECharacteristic>(_beatmapCharacteristicName)
-}
+//data class DifficultyBeatmapSet(
+//    val _beatmapCharacteristicName: String,
+//    val _difficultyBeatmaps: List<DifficultyBeatmap>
+//) {
+//    fun validate(validator: Validator<DifficultyBeatmapSet>, files: Set<String>, getFile: (String) -> ZipPath?, info: ExtractedInfo) = validator.apply {
+//        validate(DifficultyBeatmapSet::_beatmapCharacteristicName).isNotNull().isIn("Standard", "NoArrows", "OneSaber", "360Degree", "90Degree", "Lightshow", "Lawless")
+//        validate(DifficultyBeatmapSet::_difficultyBeatmaps).isNotNull().isNotEmpty().validateForEach {
+//            it.validate(this, self(), files, getFile, info)
+//        }
+//    }
+//
+//    private fun self() = this
+//
+//    fun enumValue() = searchEnum<ECharacteristic>(_beatmapCharacteristicName)
+//}
 
 data class DifficultyBeatmap(
     val _difficulty: String,
     val _difficultyRank: Int,
+    val _beatsSubdivisions: Int,
+    val _beatsNumber: Int,
     val _beatmapFilename: String,
     val _noteJumpMovementSpeed: Float,
     val _noteJumpStartBeatOffset: Float,
@@ -254,75 +263,75 @@ data class DifficultyBeatmap(
         additionalInformation[name] = value
     }
 
-    private fun diffValid(
-        parent: Validator<*>.Property<*>,
-        path: ZipPath?,
-        characteristic: DifficultyBeatmapSet,
-        difficulty: DifficultyBeatmap,
-        info: ExtractedInfo
-    ) = path?.inputStream().use { stream ->
-        val byteArrayOutputStream = ByteArrayOutputStream()
-        stream?.copyTo(byteArrayOutputStream, sizeLimit = 50 * 1024 * 1024)
-        val bytes = byteArrayOutputStream.toByteArray()
-
-        info.md.write(bytes)
-        val jsonElement = jsonIgnoreUnknown.parseToJsonElement(readFromBytes(bytes))
-        val diff = if (jsonElement.jsonObject.containsKey("version")) {
-            jsonIgnoreUnknown.decodeFromJsonElement<BSDifficultyV3>(jsonElement)
-        } else {
-            jsonIgnoreUnknown.decodeFromJsonElement<BSDifficulty>(jsonElement)
-        }
-
-        info.diffs.getOrPut(characteristic) {
-            mutableMapOf()
-        }[difficulty] = diff
-
-        val maxBeat = info.songLengthInfo?.maximumBeat(info.mapInfo._beatsPerMinute) ?: 0f
-        parent.addConstraintViolations(
-            when (diff) {
-                is BSDifficulty -> Validator(diff).apply { this.validate(info, maxBeat) }
-                is BSDifficultyV3 -> Validator(diff).apply { this.validateV3(info, maxBeat, Version(diff.version)) }
-            }.constraintViolations.map { constraint ->
-                DefaultConstraintViolation(
-                    property = "`${path?.fileName}`.${constraint.property}",
-                    value = constraint.value,
-                    constraint = constraint.constraint
-                )
-            }
-        )
-    }
+//    private fun diffValid(
+//        parent: Validator<*>.Property<*>,
+//        path: ZipPath?,
+//        characteristic: DifficultyBeatmapSet,
+//        difficulty: DifficultyBeatmap,
+//        info: ExtractedInfo
+//    ) = path?.inputStream().use { stream ->
+//        val byteArrayOutputStream = ByteArrayOutputStream()
+//        stream?.copyTo(byteArrayOutputStream, sizeLimit = 50 * 1024 * 1024)
+//        val bytes = byteArrayOutputStream.toByteArray()
+//
+//        info.md.write(bytes)
+//        val jsonElement = jsonIgnoreUnknown.parseToJsonElement(readFromBytes(bytes))
+//        val diff = if (jsonElement.jsonObject.containsKey("version")) {
+//            jsonIgnoreUnknown.decodeFromJsonElement<BSDifficultyV3>(jsonElement)
+//        } else {
+//            jsonIgnoreUnknown.decodeFromJsonElement<BSDifficulty>(jsonElement)
+//        }
+//
+//        info.diffs.getOrPut(characteristic) {
+//            mutableMapOf()
+//        }[difficulty] = diff
+//
+//        val maxBeat = info.songLengthInfo?.maximumBeat(info.mapInfo._beatsPerMinute) ?: 0f
+//        parent.addConstraintViolations(
+//            when (diff) {
+//                is BSDifficulty -> Validator(diff).apply { this.validate(info, maxBeat) }
+//                is BSDifficultyV3 -> Validator(diff).apply { this.validateV3(info, maxBeat, Version(diff.version)) }
+//            }.constraintViolations.map { constraint ->
+//                DefaultConstraintViolation(
+//                    property = "`${path?.fileName}`.${constraint.property}",
+//                    value = constraint.value,
+//                    constraint = constraint.constraint
+//                )
+//            }
+//        )
+//    }
 
     private fun self() = this
 
-    fun validate(
-        validator: Validator<DifficultyBeatmap>,
-        characteristic: DifficultyBeatmapSet,
-        files: Set<String>,
-        getFile: (String) -> ZipPath?,
-        info: ExtractedInfo
-    ) = validator.apply {
-        extraFieldsViolation(
-            constraintViolations,
-            additionalInformation.keys,
-            arrayOf("_warnings", "_information", "_suggestions", "_requirements", "_difficultyLabel", "_envColorLeft", "_envColorRight", "_colorLeft", "_colorRight")
-        )
-
-        val allowedDiffNames = setOf("Easy", "Normal", "Hard", "Expert", "ExpertPlus")
-        validate(DifficultyBeatmap::_difficulty).isNotNull()
-            .validate(In(allowedDiffNames)) { it == null || allowedDiffNames.any { dn -> dn.equals(it, true) } }
-            .validate(UniqueDiff(_difficulty)) {
-                !characteristic._difficultyBeatmaps.any {
-                    it != self() && it._difficulty == self()._difficulty
-                }
-            }
-        validate(DifficultyBeatmap::_difficultyRank).isNotNull().isIn(1, 3, 5, 7, 9)
-        validate(DifficultyBeatmap::_beatmapFilename).isNotNull().validate(InFiles) { it == null || files.contains(it.lowercase()) }
-            .also {
-                if (files.contains(_beatmapFilename.lowercase())) {
-                    diffValid(it, getFile(_beatmapFilename), characteristic, self(), info)
-                }
-            }
-    }
+//    fun validate(
+//        validator: Validator<DifficultyBeatmap>,
+//        characteristic: DifficultyBeatmapSet,
+//        files: Set<String>,
+//        getFile: (String) -> ZipPath?,
+//        info: ExtractedInfo
+//    ) = validator.apply {
+//        extraFieldsViolation(
+//            constraintViolations,
+//            additionalInformation.keys,
+//            arrayOf("_warnings", "_information", "_suggestions", "_requirements", "_difficultyLabel", "_envColorLeft", "_envColorRight", "_colorLeft", "_colorRight")
+//        )
+//
+//        val allowedDiffNames = setOf("Easy", "Normal", "Hard", "Expert", "ExpertPlus")
+//        validate(DifficultyBeatmap::_difficulty).isNotNull()
+//            .validate(In(allowedDiffNames)) { it == null || allowedDiffNames.any { dn -> dn.equals(it, true) } }
+//            .validate(UniqueDiff(_difficulty)) {
+//                !characteristic._difficultyBeatmaps.any {
+//                    it != self() && it._difficulty == self()._difficulty
+//                }
+//            }
+//        validate(DifficultyBeatmap::_difficultyRank).isNotNull().isIn(1, 3, 5, 7, 9)
+//        validate(DifficultyBeatmap::_beatmapFilename).isNotNull().validate(InFiles) { it == null || files.contains(it.lowercase()) }
+//            .also {
+//                if (files.contains(_beatmapFilename.lowercase())) {
+//                    diffValid(it, getFile(_beatmapFilename), characteristic, self(), info)
+//                }
+//            }
+//    }
 
     fun enumValue() = EDifficulty.fromInt(_difficultyRank) ?: searchEnum(_difficulty)
 }
