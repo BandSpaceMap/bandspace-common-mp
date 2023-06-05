@@ -5,17 +5,12 @@ import com.fasterxml.jackson.annotation.JsonAnySetter
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.module.kotlin.readValue
-import io.beatmaps.common.api.ECharacteristic
 import io.beatmaps.common.api.EDifficulty
 import io.beatmaps.common.api.searchEnum
 import io.beatmaps.common.copyTo
 import io.beatmaps.common.jackson
-import io.beatmaps.common.jsonIgnoreUnknown
 import io.beatmaps.common.zip.ExtractedInfo
 import io.beatmaps.common.zip.ZipPath
-import io.beatmaps.common.zip.readFromBytes
-import kotlinx.serialization.json.decodeFromJsonElement
-import kotlinx.serialization.json.jsonObject
 import net.coobird.thumbnailator.Thumbnails
 import org.jaudiotagger.audio.generic.GenericAudioHeader
 import org.jaudiotagger.audio.ogg.OggFileReader
@@ -24,7 +19,6 @@ import org.valiktor.ConstraintViolation
 import org.valiktor.ConstraintViolationException
 import org.valiktor.DefaultConstraintViolation
 import org.valiktor.Validator
-import org.valiktor.constraints.In
 import org.valiktor.constraints.NotNull
 import org.valiktor.functions.isBetween
 import org.valiktor.functions.isEqualTo
@@ -231,10 +225,10 @@ data class Contributor(
     val _iconPath: String? = null
 )
 
-//data class DifficultyBeatmapSet(
+// data class DifficultyBeatmapSet(
 //    val _beatmapCharacteristicName: String,
 //    val _difficultyBeatmaps: List<DifficultyBeatmap>
-//) {
+// ) {
 //    fun validate(validator: Validator<DifficultyBeatmapSet>, files: Set<String>, getFile: (String) -> ZipPath?, info: ExtractedInfo) = validator.apply {
 //        validate(DifficultyBeatmapSet::_beatmapCharacteristicName).isNotNull().isIn("Standard", "NoArrows", "OneSaber", "360Degree", "90Degree", "Lightshow", "Lawless")
 //        validate(DifficultyBeatmapSet::_difficultyBeatmaps).isNotNull().isNotEmpty().validateForEach {
@@ -245,7 +239,7 @@ data class Contributor(
 //    private fun self() = this
 //
 //    fun enumValue() = searchEnum<ECharacteristic>(_beatmapCharacteristicName)
-//}
+// }
 
 data class DifficultyBeatmap(
     val _difficulty: String,

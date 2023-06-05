@@ -44,7 +44,6 @@ open class KInstrumentEnumSerializer<E>(private val members: Array<E>) : KSerial
     }
 }
 
-
 inline fun <reified T : Enum<T>> searchEnum(search: String): T {
     for (each in enumValues<T>()) {
         if (each.name.removePrefix("_").compareTo(search.replace(" ", ""), ignoreCase = true) == 0) {
@@ -76,8 +75,8 @@ enum class EInstrument(val color: String) : HumanEnum<EInstrument> {
 
 @Serializable(with = EDifficultySerializer::class)
 enum class EDifficulty(val idx: Int, private val _human: String, val color: String) : HumanEnum<EDifficulty> {
-    Easy(1, "Easy", "green"), Normal(3, "Normal", "blue"), Hard(5, "Hard", "hard"),
-    Expert(7, "Expert", "expert"), ExpertPlus(9, "Expert+", "purple");
+    Easy(1, "Easy", "green"), Normal(2, "Normal", "blue"), Hard(3, "Hard", "hard"),
+    Expert(4, "Expert", "expert"), ExpertPlus(5, "Expert+", "purple");
 
     override fun human() = _human
     override fun enumName() = name
