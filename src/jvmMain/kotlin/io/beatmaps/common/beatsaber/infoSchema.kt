@@ -5,17 +5,12 @@ import com.fasterxml.jackson.annotation.JsonAnySetter
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.module.kotlin.readValue
-import io.beatmaps.common.api.ECharacteristic
 import io.beatmaps.common.api.EDifficulty
 import io.beatmaps.common.api.searchEnum
 import io.beatmaps.common.copyTo
 import io.beatmaps.common.jackson
-import io.beatmaps.common.jsonIgnoreUnknown
 import io.beatmaps.common.zip.ExtractedInfo
 import io.beatmaps.common.zip.ZipPath
-import io.beatmaps.common.zip.readFromBytes
-import kotlinx.serialization.json.decodeFromJsonElement
-import kotlinx.serialization.json.jsonObject
 import net.coobird.thumbnailator.Thumbnails
 import org.jaudiotagger.audio.generic.GenericAudioHeader
 import org.jaudiotagger.audio.ogg.OggFileReader
@@ -24,7 +19,6 @@ import org.valiktor.ConstraintViolation
 import org.valiktor.ConstraintViolationException
 import org.valiktor.DefaultConstraintViolation
 import org.valiktor.Validator
-import org.valiktor.constraints.In
 import org.valiktor.constraints.NotNull
 import org.valiktor.functions.isBetween
 import org.valiktor.functions.isEqualTo
@@ -172,7 +166,26 @@ data class MapInfo(
         validate(MapInfo::_songTimeOffset).isZero()
 //        validate(MapInfo::_difficultyBeatmapSets).isNotNull().isNotEmpty().validateForEach { it.validate(this, files, getFile, info) }
         validate(MapInfo::_InstrumentMapDic).isNotNull().isNotEmpty().validate {
-            info.diffInstruments = it
+            instrumentValid(it, files, info, getFile)
+        }
+    }
+}
+
+fun instrumentValid(instrumentMapDic: Map<String, List<DifficultyBeatmap>>, files: Set<String>, info: ExtractedInfo, getFile: (String) -> ZipPath?) {
+    instrumentMapDic.forEach { (insName, insBeats) ->
+        for (insBeat in insBeats) {
+            val beatFileName = files.find { file -> file.contains(insBeat._beatmapFilename.lowercase()) }
+            if (beatFileName.isNullOrEmpty()) continue
+            val beatFileStream = getFile(beatFileName)?.inputStream() ?: continue
+            val byteArrayOutputStream = ByteArrayOutputStream()
+            beatFileStream.copyTo(byteArrayOutputStream, sizeLimit = 50 * 1024 * 1024)
+            val beatFileJson = jackson.readValue<Map<String, Any>>(byteArrayOutputStream.toByteArray())
+            val beatDicObj = beatFileJson["_${insName.lowercase()}BeatMapDic"] // 读取BeatMapDic
+            beatDicObj ?: continue
+            val beatDic = jackson.convertValue(beatDicObj, Map::class.java)
+            if (beatDic.isNullOrEmpty()) continue // 如果读取BeatMapDic为空, 那么这个乐器不可用
+            info.diffInstruments[insName] = listOf(insBeat)
+            break //只要第一个，所以这里break
         }
     }
 }
