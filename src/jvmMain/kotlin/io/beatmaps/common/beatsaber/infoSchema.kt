@@ -178,7 +178,9 @@ fun instrumentValid(instrumentMapDic: Map<String, List<DifficultyBeatmap>>, file
             if (beatFileName.isNullOrEmpty()) continue
             val beatFileStream = getFile(beatFileName)?.inputStream() ?: continue
             val byteArrayOutputStream = ByteArrayOutputStream()
-            beatFileStream.copyTo(byteArrayOutputStream, sizeLimit = 50 * 1024 * 1024)
+            beatFileStream.use { inputStream ->
+                inputStream.copyTo(byteArrayOutputStream, sizeLimit = 50 * 1024 * 1024)
+            }
             val beatFileJson = jackson.readValue<Map<String, Any>>(byteArrayOutputStream.toByteArray())
             val beatDicObj = beatFileJson["_${insName.lowercase()}BeatMapDic"] // 读取BeatMapDic
             beatDicObj ?: continue
