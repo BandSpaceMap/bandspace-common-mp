@@ -2,7 +2,6 @@ package io.beatmaps.common.zip
 
 import io.beatmaps.common.beatsaber.BSDiff
 import io.beatmaps.common.beatsaber.DifficultyBeatmap
-//import io.beatmaps.common.beatsaber.DifficultyBeatmapSet
 import io.beatmaps.common.beatsaber.MapInfo
 import io.beatmaps.common.beatsaber.SongLengthInfo
 import io.beatmaps.common.checkParity
@@ -19,30 +18,6 @@ import java.math.BigDecimal
 
 data class DiffStats(val chroma: Boolean, val noodle: Boolean, val me: Boolean, val cinema: Boolean, val nps: BigDecimal)
 fun Array<String>?.containsIgnoreCase(element: String) = this?.any { e -> e.equals(element, true) } ?: false
-
-//fun ZipHelper.parseDifficulty(hash: String, diff: DifficultyBeatmap, char: DifficultyBeatmapSet, map: MapInfo, sli: SongLengthInfo, ver: VersionsDao? = null): DiffStats {
-//    val version = ver ?: VersionsDao.wrapRow(
-//        Versions.select {
-//            Versions.hash eq hash
-//        }.first()
-//    )
-//
-//    var stats = DiffStats(chroma = false, noodle = false, me = false, cinema = false, nps = BigDecimal.ZERO)
-//
-//    Difficulty.insertIgnore {
-//        it[mapId] = version.mapId
-//        it[versionId] = version.id
-//        it[createdAt] = version.uploaded
-//
-//        val bsdiff = diff(diff._beatmapFilename)
-//
-//        stats = sharedInsert(it, diff, bsdiff, map, sli)
-//        it[characteristic] = char.enumValue()
-//        it[difficulty] = diff.enumValue()
-//    }
-//
-//    return stats
-//}
 
 fun Difficulty.sharedInsert(it: UpdateBuilder<*>, diff: DifficultyBeatmap, bsdiff: BSDiff, map: MapInfo, sli: SongLengthInfo): DiffStats {
     it[njs] = diff._noteJumpMovementSpeed

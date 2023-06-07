@@ -51,7 +51,7 @@ data class ExtractedInfo(
     var mapInfo: MapInfo,
     val score: Short,
 //    val diffs: MutableMap<DifficultyBeatmapSet, MutableMap<DifficultyBeatmap, BSDiff>> = mutableMapOf(),
-    var diffInstruments: Map<String, List<DifficultyBeatmap>>? = null,
+    var diffInstruments: MutableMap<String, List<DifficultyBeatmap>> = mutableMapOf(),
     var duration: Float = 0f,
     var thumbnail: ByteArrayOutputStream? = null,
     var preview: ByteArrayOutputStream? = null,
