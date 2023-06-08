@@ -108,6 +108,19 @@ class ZipHelper(private val fs: ZipFile, val filesOriginalCase: Set<String>, val
         }
     }
 
+    val previewAudioFile: File by lazy {
+        val path = fromInfo("preview.ogg")
+        File.createTempFile("audio_preview", ".ogg").also { file ->
+            file.deleteOnExit()
+
+            path?.inputStream()?.use { iss ->
+                file.outputStream().use {
+                    iss.copyTo(it, sizeLimit = 50 * 1024 * 1024)
+                }
+            }
+        }
+    }
+
     private fun audioInitialized() = ::audioFile.isLazyInitialized
 
     val info by lazy {
@@ -155,13 +168,15 @@ class ZipHelper(private val fs: ZipFile, val filesOriginalCase: Set<String>, val
                 }
             }.orElse(0)
 
-    fun generatePreview() = AudioSystem.getAudioInputStream(audioFile).use { oggStream ->
-        convertToPCM(
-            oggStream,
-            info._previewStartTime,
-            10.2f
-        ).use(::encodeToMp3)
-    }
+//    fun generatePreview() = AudioSystem.getAudioInputStream(previewAudioFile).use { oggStream ->
+//        convertToPCM(
+//            oggStream,
+//            info._previewStartTime,
+//            10.2f
+//        ).use(::encodeToMp3)
+//    }
+
+    fun generatePreview() = previewAudioFile.readBytes()
 
     private fun convertToPCM(input: AudioInputStream, skip: Float, length: Float): AudioInputStream {
         val sourceFormat = input.format
