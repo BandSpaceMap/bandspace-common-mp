@@ -24,7 +24,7 @@ fun genericEmail() = SimpleEmail().apply {
     setSmtpPort(465)
     setAuthenticator(DefaultAuthenticator(relayUsername, relayPassword))
     isSSLOnConnect = true
-    setFrom("no-reply@beatsaver.com")
+    setFrom("no-reply@bspacemap.com")
 }
 
 fun Application.emailQueue() {
